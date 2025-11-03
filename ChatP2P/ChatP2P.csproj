@@ -8,10 +8,4 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Folder Include="ViewModel\Command\" />
-    <Folder Include="View\Ulitilies\" />
-    <Folder Include="View\UserControls\" />
-  </ItemGroup>
-
 </Project>
