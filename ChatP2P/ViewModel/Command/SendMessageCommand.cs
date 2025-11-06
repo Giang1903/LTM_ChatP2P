@@ -26,3 +26,6 @@ namespace ChatP2P.ViewModel.Command
         public void Execute(object parameter)
         {
             parent.SendMessage();
+        }
+    }
+}

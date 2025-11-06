@@ -15,22 +15,22 @@ using System.Collections.ObjectModel;
 
 namespace ChatP2P.ViewModel
 {
-    
+
     internal class MainWindowViewModel : INotifyPropertyChanged
     {
-        
+
         private string errorMessage = "";
         public string ErrorMessage { get { return errorMessage; } set { errorMessage = value; OnPropertyChanged("ErrorMessage"); } }
 
-        
+
         private ObservableCollection<string> ipAddresses = new ObservableCollection<string>();
         public ObservableCollection<string> IpAddresses { get { return ipAddresses; } }
 
-        
+
         private string selectedIp = "127.0.0.1";
         public string SelectedIp { get { return selectedIp; } set { selectedIp = value; } }
 
-      
+
         private string name;
         public string Name
         {
@@ -38,7 +38,7 @@ namespace ChatP2P.ViewModel
             set { name = value; }
         }
 
-       
+
         private string port;
         public string Port
         {
@@ -46,7 +46,7 @@ namespace ChatP2P.ViewModel
             set { port = value; }
         }
 
-        
+
         private ICommand startClient;
         public ICommand StartClient
         {
@@ -70,7 +70,7 @@ namespace ChatP2P.ViewModel
             }
         }
 
-        
+
         public MainWindowViewModel()
         {
             NetworkManager.Instance.listenerFailedEvent += OnError;
@@ -87,20 +87,20 @@ namespace ChatP2P.ViewModel
             OnPropertyChanged("IpAddresses");
         }
 
-        
+
         public void StartChatClient()
         {
             if (name.Length < 2)
             {
-                ErrorMessage = "Name must be at least two characters long.";
+                ErrorMessage = "Tên phải có ít nhất 2 ký tự.";
             }
             else if (!IsValidPort())
             {
-                ErrorMessage = "Please choose a port between 10 000 and 64 0000.";
+                ErrorMessage = "Vui lòng chọn cổng (port) từ 10.000 đến 64.000.";
             }
             else if (NetworkManager.IsPortOccupied(port))
             {
-                ErrorMessage = "The port " + port + " is currently occupied.";
+                ErrorMessage = "Cổng " + port + " hiện đang được sử dụng.";
             }
             else
             {
@@ -111,13 +111,11 @@ namespace ChatP2P.ViewModel
             }
         }
 
-        
         public void OnError(object sender, EventArgs e)
         {
-            ErrorMessage = $"Failed to start listening on port {port}";
+            ErrorMessage = $"Không thể lắng nghe (listen) trên cổng {port}.";
         }
 
-      
         public void OnSuccess(object sender, EventArgs e)
         {
             ErrorMessage = "";
@@ -126,10 +124,9 @@ namespace ChatP2P.ViewModel
             chatClientWindow.ShowDialog();
         }
 
-       
         private bool IsValidPort()
         {
-            Int32 portInt = 0;
+            int portInt = 0;
 
             try
             {
@@ -140,7 +137,7 @@ namespace ChatP2P.ViewModel
                 return false;
             }
 
-            if (portInt < 9999 || portInt > 64001)
+            if (portInt < 10000 || portInt > 64000)
             {
                 return false;
             }

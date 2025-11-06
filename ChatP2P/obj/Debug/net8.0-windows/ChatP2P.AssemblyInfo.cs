@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ChatP2P")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6bb7bd3fd00354c257b690f6b35222d559306cc3")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+63095b31da815865d3d837f7c20093b65e21d214")]
 [assembly: System.Reflection.AssemblyProductAttribute("ChatP2P")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ChatP2P")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

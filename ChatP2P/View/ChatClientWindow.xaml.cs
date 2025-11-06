@@ -16,7 +16,7 @@ using ChatP2P.Model;
 
 namespace ChatP2P.View
 {
-    
+
     public partial class ChatClientWindow : Window
     {
         public ChatClientWindow()

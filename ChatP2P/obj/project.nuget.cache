@@ -1,8 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "/z5Cg2lf6/M=",
+  "dgSpecHash": "I3b8kvygLac=",
   "success": true,
-  "projectFilePath": "D:\\LTM\\ChatP2P\\ChatP2P.csproj",
-  "expectedPackageFiles": [],
+  "projectFilePath": "D:\\LTM\\LTM_ChatP2P\\ChatP2P\\ChatP2P.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\admin\\.nuget\\packages\\microsoft.xaml.behaviors.wpf\\1.1.77\\microsoft.xaml.behaviors.wpf.1.1.77.nupkg.sha512",
+    "C:\\Users\\admin\\.nuget\\packages\\newtonsoft.json\\13.0.4\\newtonsoft.json.13.0.4.nupkg.sha512"
+  ],
   "logs": []
 }

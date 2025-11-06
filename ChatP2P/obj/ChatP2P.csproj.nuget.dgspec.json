@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\LTM\\ChatP2P\\ChatP2P.csproj": {}
+    "D:\\LTM\\LTM_ChatP2P\\ChatP2P\\ChatP2P.csproj": {}
   },
   "projects": {
-    "D:\\LTM\\ChatP2P\\ChatP2P.csproj": {
+    "D:\\LTM\\LTM_ChatP2P\\ChatP2P\\ChatP2P.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\LTM\\ChatP2P\\ChatP2P.csproj",
+        "projectUniqueName": "D:\\LTM\\LTM_ChatP2P\\ChatP2P\\ChatP2P.csproj",
         "projectName": "ChatP2P",
-        "projectPath": "D:\\LTM\\ChatP2P\\ChatP2P.csproj",
+        "projectPath": "D:\\LTM\\LTM_ChatP2P\\ChatP2P\\ChatP2P.csproj",
         "packagesPath": "C:\\Users\\admin\\.nuget\\packages\\",
-        "outputPath": "D:\\LTM\\ChatP2P\\obj\\",
+        "outputPath": "D:\\LTM\\LTM_ChatP2P\\ChatP2P\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -49,6 +49,16 @@
       "frameworks": {
         "net8.0-windows7.0": {
           "targetAlias": "net8.0-windows",
+          "dependencies": {
+            "Microsoft.Xaml.Behaviors.Wpf": {
+              "target": "Package",
+              "version": "[1.1.77, )"
+            },
+            "Newtonsoft.Json": {
+              "target": "Package",
+              "version": "[13.0.4, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",

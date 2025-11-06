@@ -1,35 +1,92 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.Windows;
 
 namespace ChatP2P.Model
 {
     public class ConversationModel
     {
-        public string ConversationId { get; }
-        public UserModel Self { get; }
-        public UserModel Peer { get; }
-        public bool IsActive { get; set; }
-        public ObservableCollection<DataModel> Messages { get; }
+        private string endpoint;
+        public string Endpoint { get { return endpoint; } set { endpoint = value; } }
 
-        public ConversationModel(UserModel self, UserModel peer, bool isActive = true)
+        private string name;
+        public string Name { get; set; }
+
+        private DateTime lastActivity;
+        public DateTime LastActivity { get => lastActivity; set { lastActivity = value; } }
+        public string LastActivityToString { get { return DateToString(lastActivity); } }
+
+        private bool unreadMessages = false;
+        public bool UnreadMessages { get { return unreadMessages; } set { unreadMessages = value; } }
+
+        private bool unreadBuzz = false;
+        public bool UnreadBuzz { get { return unreadBuzz; } set { unreadBuzz = value; } }
+
+        public string Username { get { return user.Name; } }
+        private UserModel user;
+        public UserModel User { get { return user; } set { user = value; } }
+        private ObservableCollection<DataModel> messages = new ObservableCollection<DataModel>();
+        public ObservableCollection<DataModel> Messages { get { return messages; } }
+        public ConversationModel() { }
+        public ConversationModel(string endpoint)
         {
-            ConversationId = GenerateConversationId(self, peer);
-            Self = self;
-            Peer = peer;
-            IsActive = isActive;
-            Messages = new ObservableCollection<DataModel>();
+            this.endpoint = endpoint;
         }
-
-        public void Append(DataModel data)
+        public ConversationModel(UserModel user)
         {
-            Messages.Add(data);
+            this.user = user;
         }
-
-        private static string GenerateConversationId(UserModel a, UserModel b)
+        public void ReceiveMessage(DataModel message)
         {
-            var p1 = $"{a.Address}:{a.Port}";
-            var p2 = $"{b.Address}:{b.Port}";
-            return string.CompareOrdinal(p1, p2) <= 0 ? $"{p1}|{p2}" : $"{p2}|{p1}";
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                lastActivity = message.Date;
+                messages.Add(message);
+                if (!(ConversationManager.Instance.CurrentConversation == User.Address))
+                {
+                    unreadMessages = true;
+                    UnreadBuzz = false;
+                }
+                else
+                {
+                    unreadMessages = false;
+                }
+            });
+
+        }
+        private static string DateToString(DateTime dateTime)
+        {
+            int seconds = (int)(DateTime.Now - dateTime).TotalSeconds;
+
+            if (seconds < 30)
+            {
+                return "Just now";
+            }
+            else if (seconds < 60)
+            {
+                return $"{seconds} sec ago";
+            }
+            else if (seconds < 60 * 60)
+            {
+                int minutes = seconds / 60;
+                return $"{minutes} min ago";
+            }
+            else if (seconds < (60 * 60 * 24))
+            {
+                int hours = seconds / 60 / 60;
+                string tmp = hours == 1 ? "hour" : "hours";
+                return $"{hours} {tmp} ago";
+            }
+            else if (seconds < (60 * 60 * 24 * 30))
+            {
+                int days = seconds / 60 / 60 / 24;
+                string tmp = days == 1 ? "day" : "days";
+                return $"{days} {tmp} ago";
+            }
+            else
+            {
+                return "Long ago";
+            }
         }
     }
 }
