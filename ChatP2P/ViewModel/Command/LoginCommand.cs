@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
-namespace ChatApp.ViewModel.Command
+namespace ChatP2P.ViewModel.Command
 {
     /// <summary>
     /// Command for starting the chat client.

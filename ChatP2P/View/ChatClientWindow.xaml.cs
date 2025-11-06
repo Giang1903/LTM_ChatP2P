@@ -1,6 +1,4 @@
-﻿using ChatApp.Model;
-using ChatApp.ViewModel;
-using ChatP2P.ViewModel;
+﻿using ChatP2P.ViewModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,8 +12,9 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using ChatP2P.Model;
 
-namespace ChatApp.View
+namespace ChatP2P.View
 {
     /// <summary>
     /// Interaction logic for ChatClientWindow.xaml

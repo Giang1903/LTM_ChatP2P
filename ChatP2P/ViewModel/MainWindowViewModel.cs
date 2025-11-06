@@ -1,6 +1,6 @@
-﻿using ChatApp.Model;
-using ChatApp.View;
-using ChatApp.ViewModel.Command;
+﻿using ChatP2P.Model;
+using ChatP2P.View;
+using ChatP2P.ViewModel.Command;
 using ChatP2P.Model;
 using ChatP2P.View;
 using ChatP2P.ViewModel.Command;
@@ -16,7 +16,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
-namespace ChatApp.ViewModel
+namespace ChatP2P.ViewModel
 {
     /// <summary>
     /// ViewModel for the main window.
