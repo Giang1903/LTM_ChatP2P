@@ -6,11 +6,10 @@ using System.Threading.Tasks;
 
 namespace ChatP2P.Model
 {
-    public class BuzzModel : DataModel
-    {
-        public BuzzModel(UserModel sender, string receiver)
-            : base(sender, receiver)
-        {
-        }
-    }
+	public class BuzzModel
+	{
+		public bool IsOutgoing { get; set; }
+
+		public DateTime TimestampUtc { get; set; } = DateTime.UtcNow;
+	}
 }
