@@ -1,49 +1,36 @@
 ﻿using ChatP2P.Model;
 using ChatP2P.View;
 using ChatP2P.ViewModel.Command;
-using ChatP2P.Model;
-using ChatP2P.View;
-using ChatP2P.ViewModel.Command;
 using System;
 using System.Collections.Generic;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
+using System.Runtime.CompilerServices;
 using System.ComponentModel;
 using System.Linq;
-using System.Net.NetworkInformation;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using System.Net.NetworkInformation;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace ChatP2P.ViewModel
 {
-    /// <summary>
-    /// ViewModel for the main window.
-    /// </summary>
+    
     internal class MainWindowViewModel : INotifyPropertyChanged
     {
-        /// <summary>
-        /// Error message that contais a specific error message depending on what kind of error has occured.
-        /// </summary>
+        
         private string errorMessage = "";
         public string ErrorMessage { get { return errorMessage; } set { errorMessage = value; OnPropertyChanged("ErrorMessage"); } }
 
-        /// <summary>
-        /// A list of available IP-addresses to start listenening on.
-        /// </summary>
+        
         private ObservableCollection<string> ipAddresses = new ObservableCollection<string>();
         public ObservableCollection<string> IpAddresses { get { return ipAddresses; } }
 
-        /// <summary>
-        /// The currently choosen IP address.
-        /// </summary>
+        
         private string selectedIp = "127.0.0.1";
         public string SelectedIp { get { return selectedIp; } set { selectedIp = value; } }
 
-        /// <summary>
-        /// The name that the user enters in the textbox.
-        /// </summary>
+      
         private string name;
         public string Name
         {
@@ -51,9 +38,7 @@ namespace ChatP2P.ViewModel
             set { name = value; }
         }
 
-        /// <summary>
-        /// The port that the users enters in the textbox.
-        /// </summary>
+       
         private string port;
         public string Port
         {
@@ -61,9 +46,7 @@ namespace ChatP2P.ViewModel
             set { port = value; }
         }
 
-        /// <summary>
-        /// Command to start the chat window.
-        /// </summary>
+        
         private ICommand startClient;
         public ICommand StartClient
         {
@@ -87,9 +70,7 @@ namespace ChatP2P.ViewModel
             }
         }
 
-        /// <summary>
-        /// Constructor that setups event listeners and fetches all available IP addresses from the Network Manager.
-        /// </summary>
+        
         public MainWindowViewModel()
         {
             NetworkManager.Instance.listenerFailedEvent += OnError;
@@ -106,9 +87,7 @@ namespace ChatP2P.ViewModel
             OnPropertyChanged("IpAddresses");
         }
 
-        /// <summary>
-        /// Starts the chat window or displays an error message after the user try to start.
-        /// </summary>
+        
         public void StartChatClient()
         {
             if (name.Length < 2)
@@ -132,21 +111,13 @@ namespace ChatP2P.ViewModel
             }
         }
 
-        /// <summary>
-        /// Displays an error message if the Network Manager failed to start listening on the port.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
+        
         public void OnError(object sender, EventArgs e)
         {
             ErrorMessage = $"Failed to start listening on port {port}";
         }
 
-        /// <summary>
-        /// Starts the chat client if there was no errors.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
+      
         public void OnSuccess(object sender, EventArgs e)
         {
             ErrorMessage = "";
@@ -155,10 +126,7 @@ namespace ChatP2P.ViewModel
             chatClientWindow.ShowDialog();
         }
 
-        /// <summary>
-        /// Verifies if a port is valid.
-        /// </summary>
-        /// <returns></returns>
+       
         private bool IsValidPort()
         {
             Int32 portInt = 0;

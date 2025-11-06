@@ -7,9 +7,7 @@ using System.Windows.Input;
 
 namespace ChatP2P.ViewModel.Command
 {
-    /// <summary>
-    /// Command for starting the chat client.
-    /// </summary>
+   
     internal class LoginCommand : ICommand
     {
         private MainWindowViewModel parent;

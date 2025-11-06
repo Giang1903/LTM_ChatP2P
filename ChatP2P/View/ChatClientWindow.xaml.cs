@@ -16,9 +16,7 @@ using ChatP2P.Model;
 
 namespace ChatP2P.View
 {
-    /// <summary>
-    /// Interaction logic for ChatClientWindow.xaml
-    /// </summary>
+    
     public partial class ChatClientWindow : Window
     {
         public ChatClientWindow()
