@@ -6,7 +6,12 @@ using System.Threading.Tasks;
 
 namespace ChatP2P.Model
 {
-    internal class MessageModel
+    public class MessageModel : DataModel
     {
+        public MessageModel(UserModel sender, string receiver, string message)
+            : base(sender, receiver, message, DateTime.Now)
+        {
+            Message = message;
+        }
     }
 }

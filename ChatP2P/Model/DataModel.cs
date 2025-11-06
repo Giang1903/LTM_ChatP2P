@@ -8,23 +8,24 @@ namespace ChatP2P.Model
 {
     public abstract class DataModel
     {
-        private UserModel sender;
-        private string receiver;
+        private readonly UserModel sender;
+        private readonly string receiver;
         private DateTime date;
         private string? message;
-        public DataModel(UserModel sender, string receiver, DateTime date = null)
+
+        public DataModel(UserModel sender, string receiver, string? message = null, DateTime? date = null)
         {
             this.sender = sender;
             this.receiver = receiver;
             this.message = message;
-            date = DateTime.Now;
+            this.date = date ?? DateTime.Now;
         }
+
         public string SenderAddr { get { return sender.Address; } }
         public UserModel Sender { get { return sender; } }
         public string ReceiverAddr { get { return receiver; } }
         public DateTime Date { get { return date; } }
         public string Name { get { return sender.Name; } }
-        public string Message { get { return message; } set { message = value; } } }
-
+        public string? Message { get { return message; } set { message = value; } }
     }
 }
