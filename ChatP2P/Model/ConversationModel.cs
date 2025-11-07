@@ -1,10 +1,15 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Windows;
 
 namespace ChatP2P.Model
 {
-    public class ConversationModel
+    /// <summary>
+    /// Lớp ConversationModel định nghĩa một cuộc hội thoại giữa người dùng hiện tại và một người dùng khác.
+    /// Chứa ObservableCollection tin nhắn và các thông tin liên quan đến cuộc trò chuyện.
+    /// </summary>
+    public class ConversationModel : INotifyPropertyChanged
     {
         private string endpoint;
         public string Endpoint { get { return endpoint; } set { endpoint = value; } }
@@ -13,28 +18,81 @@ namespace ChatP2P.Model
         public string Name { get; set; }
 
         private DateTime lastActivity;
-        public DateTime LastActivity { get => lastActivity; set { lastActivity = value; } }
+        public DateTime LastActivity 
+        { 
+            get => lastActivity; 
+            set 
+            { 
+                lastActivity = value; 
+                OnPropertyChanged(nameof(LastActivity));
+                OnPropertyChanged(nameof(LastActivityToString));
+            } 
+        }
         public string LastActivityToString { get { return DateToString(lastActivity); } }
 
         private bool unreadMessages = false;
-        public bool UnreadMessages { get { return unreadMessages; } set { unreadMessages = value; } }
+        public bool UnreadMessages 
+        { 
+            get { return unreadMessages; } 
+            set 
+            { 
+                unreadMessages = value; 
+                OnPropertyChanged(nameof(UnreadMessages));
+            } 
+        }
 
         private bool unreadBuzz = false;
-        public bool UnreadBuzz { get { return unreadBuzz; } set { unreadBuzz = value; } }
+        public bool UnreadBuzz 
+        { 
+            get { return unreadBuzz; } 
+            set 
+            { 
+                unreadBuzz = value; 
+                OnPropertyChanged(nameof(UnreadBuzz));
+            } 
+        }
 
-        public string Username { get { return user.Name; } }
+        private bool isActive = false;
+        /// <summary>
+        /// Xác định conversation có đang active (có kết nối TCP) hay không
+        /// </summary>
+        public bool IsActive 
+        { 
+            get { return isActive; } 
+            set 
+            { 
+                isActive = value; 
+                OnPropertyChanged(nameof(IsActive));
+            } 
+        }
+
+        public string Username { get { return user?.Name ?? ""; } }
         private UserModel user;
-        public UserModel User { get { return user; } set { user = value; } }
+        public UserModel User 
+        { 
+            get { return user; } 
+            set 
+            { 
+                user = value; 
+                OnPropertyChanged(nameof(Username));
+            } 
+        }
+
+        /// <summary>
+        /// ObservableCollection chứa tất cả các tin nhắn trong cuộc hội thoại
+        /// </summary>
         private ObservableCollection<DataModel> messages = new ObservableCollection<DataModel>();
         public ObservableCollection<DataModel> Messages { get { return messages; } }
-        public ConversationModel() { }
-        public ConversationModel(string endpoint)
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+        protected void OnPropertyChanged(string propertyName)
         {
-            this.endpoint = endpoint;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
-        public ConversationModel(UserModel user)
+
+        public ConversationModel() 
         {
-            this.user = user;
+            lastActivity = DateTime.Now;
         }
         public void ReceiveMessage(DataModel message)
         {
@@ -53,6 +111,72 @@ namespace ChatP2P.Model
                 }
             });
 
+        public ConversationModel(string endpoint)
+        {
+            this.endpoint = endpoint;
+            lastActivity = DateTime.Now;
+        }
+
+        public ConversationModel(UserModel user)
+        {
+            this.user = user;
+            this.endpoint = user.Address;
+            this.name = user.Name;
+            lastActivity = DateTime.Now;
+        }
+
+        /// <summary>
+        /// Nhận và thêm tin nhắn mới vào conversation
+        /// </summary>
+        public void ReceiveMessage(DataModel message)
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                lastActivity = message.Date;
+                messages.Add(message);
+                if (User != null && !(ConversationManager.Instance.CurrentConversation == User.Address))
+                {
+                    unreadMessages = true;
+                    UnreadBuzz = false;
+                }
+                else
+                {
+                    unreadMessages = false;
+                }
+                OnPropertyChanged(nameof(LastActivity));
+                OnPropertyChanged(nameof(LastActivityToString));
+            });
+        }
+
+        /// <summary>
+        /// Nhận và xử lý tín hiệu buzz
+        /// </summary>
+        public void ReceiveBuzz(DataModel buzz)
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                lastActivity = buzz.Date;
+                if (User != null && !(ConversationManager.Instance.CurrentConversation == User.Address))
+                {
+                    unreadBuzz = true;
+                    unreadMessages = false;
+                }
+                else
+                {
+                    unreadBuzz = false;
+                }
+                OnPropertyChanged(nameof(LastActivity));
+                OnPropertyChanged(nameof(LastActivityToString));
+            });
+        }
+
+        /// <summary>
+        /// Đánh dấu đã đọc tất cả tin nhắn
+        /// </summary>
+        public void MarkAsRead()
+        {
+            UnreadMessages = false;
+            UnreadBuzz = false;
         }
         private static string DateToString(DateTime dateTime)
         {
