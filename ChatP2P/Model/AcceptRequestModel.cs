@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace ChatP2P.Model
 {
-    internal class AcceptRequestModel
+    public class AcceptRequestModel : DataModel
     {
+        public AcceptRequestModel(UserModel sender, string receiver) : base(sender, receiver) { }
     }
 }
