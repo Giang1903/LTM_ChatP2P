@@ -94,6 +94,22 @@ namespace ChatP2P.Model
         {
             lastActivity = DateTime.Now;
         }
+        public void ReceiveMessage(DataModel message)
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                lastActivity = message.Date;
+                messages.Add(message);
+                if (!(ConversationManager.Instance.CurrentConversation == User.Address))
+                {
+                    unreadMessages = true;
+                    UnreadBuzz = false;
+                }
+                else
+                {
+                    unreadMessages = false;
+                }
+            });
 
         public ConversationModel(string endpoint)
         {

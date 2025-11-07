@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ChatP2P.ViewModel;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,11 +18,12 @@ namespace ChatP2P.View.UserControls
     /// <summary>
     /// Interaction logic for SidebarRequestView.xaml
     /// </summary>
-    public partial class SidebarRequestView : Window
+    public partial class SidebarRequestView : UserControl
     {
         public SidebarRequestView()
         {
             InitializeComponent();
+            this.DataContext = new SidebarRequestViewModel();
         }
     }
 }
