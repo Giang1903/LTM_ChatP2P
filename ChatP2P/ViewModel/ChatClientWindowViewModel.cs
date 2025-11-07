@@ -1,9 +1,14 @@
 ﻿using ChatP2P.Model;
+using ChatP2P.View;
+using ChatP2P.ViewModel.Command;
+using ChatP2P.Model;
 using ChatP2P.ViewModel.Command;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.ComponentModel.Design;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -11,8 +16,11 @@ using System.Windows.Input;
 
 namespace ChatP2P.ViewModel
 {
+   
     internal class ChatClientWindowViewModel : INotifyPropertyChanged
     {
+
+      
         private string windowTitle = "";
         public string WindowTitle
         {
@@ -26,6 +34,7 @@ namespace ChatP2P.ViewModel
                 OnPropertyChanged("WindowTitle");
             }
         }
+
         private bool shouldShake;
         public bool ShouldShake
         {
@@ -47,6 +56,8 @@ namespace ChatP2P.ViewModel
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+
+      
         public ICommand onClose { get; private set; }
         public ICommand OnClose
         {
@@ -60,16 +71,20 @@ namespace ChatP2P.ViewModel
             }
             set { onClose = value; }
         }
+
         public ChatClientWindowViewModel()
         {
             ConversationManager.Instance.buzzEvent += ActivateBuzz;
             UserModel host = NetworkManager.Instance.Host;
             WindowTitle = $"{host.Name} - {host.Address}";
         }
+
+      
         private void ActivateBuzz(object sender, EventArgs e)
         {
             ShouldShake = true;
         }
+
         public static void OnWindowClose()
         {
             NetworkManager.Instance.CloseServer();
