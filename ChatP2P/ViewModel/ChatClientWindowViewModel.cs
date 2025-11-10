@@ -63,6 +63,7 @@ namespace ChatP2P.ViewModel
         public ChatClientWindowViewModel()
         {
             ConversationManager.Instance.buzzEvent += ActivateBuzz;
+            ConversationManager.Instance.Load();
             UserModel host = NetworkManager.Instance.Host;
             WindowTitle = $"{host.Name} - {host.Address}";
         }
