@@ -1,4 +1,6 @@
-﻿using System;
+﻿using ChatP2P.Model;
+using ChatP2P.ViewModel;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,18 +12,17 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 namespace ChatP2P.View.UserControls
 {
-    /// <summary>
-    /// Interaction logic for NotificationBar.xaml
-    /// </summary>
-    public partial class NotificationBar : Window
+    public partial class NotificationBar : UserControl
     {
         public NotificationBar()
         {
             InitializeComponent();
+            this.DataContext = new NotificationBarViewModel(new NotificationManager());
         }
     }
 }
