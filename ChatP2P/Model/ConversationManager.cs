@@ -8,5 +8,6 @@ namespace ChatP2P.Model
 {
     internal class ConversationManager
     {
+        public static object Instance { get; internal set; }
     }
 }
