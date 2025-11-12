@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using ChatP2P.ViewModel;
+using System;
 using System.Windows.Input;
 
 namespace ChatP2P.ViewModel.Command
@@ -20,12 +17,17 @@ namespace ChatP2P.ViewModel.Command
 
         public bool CanExecute(object parameter)
         {
-            return true;
+            return parent.CanSend;
         }
 
-        public void Execute(object parameter)
+        public async void Execute(object parameter)
         {
-            parent.SendBuzz();
+            await parent.SendBuzzAsync();
+        }
+
+        public void RaiseCanExecuteChanged()
+        {
+            CanExecuteChanged?.Invoke(this, EventArgs.Empty);
         }
     }
 }

@@ -30,9 +30,18 @@ namespace ChatP2P.Model
 
         // Sự kiện khi có buzz
         public event EventHandler buzzEvent;
+        // Sự kiện khi có yêu cầu kết nối mới (để hiển thị PendingRequestBar)
+        public event EventHandler newRequestEvent;
 
         // Lock object để đảm bảo thread-safe
         private readonly object _lock = new object();
+
+        // Hàng đợi yêu cầu kết nối đang chờ xử lý
+        private readonly Queue<UserModel> pendingRequests = new Queue<UserModel>();
+        private UserModel currentPendingRequest = null;
+
+        // Serializer lưu/tải lịch sử trò chuyện
+        private readonly ConversationSerializer serializer = new ConversationSerializer();
         // Constructor private để đảm bảo chỉ có thể tạo instance qua Instance property
         private ConversationManager()
         {
@@ -158,8 +167,86 @@ namespace ChatP2P.Model
                     var newConversation = new ConversationModel(sender);
                     conversations[sender.Address] = newConversation;
                 }
+
+                // Đưa yêu cầu vào hàng đợi và kích hoạt sự kiện nếu cần
+                pendingRequests.Enqueue(sender);
+                if (currentPendingRequest == null)
+                {
+                    currentPendingRequest = pendingRequests.Dequeue();
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        newRequestEvent?.Invoke(this, EventArgs.Empty);
+                    });
+                }
             }
         }
+
+        // Lấy thông tin yêu cầu đang chờ (để hiển thị trong PendingRequestBar)
+        public UserModel GetPendingRequest()
+        {
+            lock (_lock)
+            {
+                return currentPendingRequest;
+            }
+        }
+
+        // Chấp nhận yêu cầu kết nối hiện tại
+        public void AcceptRequest()
+        {
+            lock (_lock)
+            {
+                if (currentPendingRequest == null)
+                    return;
+
+                NetworkManager.Instance.AcceptRequest(currentPendingRequest);
+                InitializeConversation(currentPendingRequest);
+
+                // Lấy yêu cầu kế tiếp nếu có
+                currentPendingRequest = pendingRequests.Count > 0 ? pendingRequests.Dequeue() : null;
+                if (currentPendingRequest != null)
+                {
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        newRequestEvent?.Invoke(this, EventArgs.Empty);
+                    });
+                }
+            }
+        }
+
+        // Từ chối yêu cầu kết nối hiện tại
+        public void DeclineRequest()
+        {
+            lock (_lock)
+            {
+                if (currentPendingRequest == null)
+                    return;
+
+                NetworkManager.Instance.RefuseRequest(currentPendingRequest);
+
+                // Xóa conversation tạm (nếu tồn tại) khỏi danh sách
+                if (conversations.ContainsKey(currentPendingRequest.Address))
+                {
+                    var conv = conversations[currentPendingRequest.Address];
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        activeConversations.Remove(conv);
+                        inactiveConversations.Remove(conv);
+                    });
+                    conversations.Remove(currentPendingRequest.Address);
+                }
+
+                // Lấy yêu cầu kế tiếp nếu có
+                currentPendingRequest = pendingRequests.Count > 0 ? pendingRequests.Dequeue() : null;
+                if (currentPendingRequest != null)
+                {
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        newRequestEvent?.Invoke(this, EventArgs.Empty);
+                    });
+                }
+            }
+        }
+
         // Khởi tạo conversation khi kết nối được chấp nhận
         public void InitializeConversation(UserModel user)
         {
@@ -265,6 +352,9 @@ namespace ChatP2P.Model
             {
                 if (conversations.ContainsKey(address))
                 {
+                    // Gửi tín hiệu đóng tới đối tác (nếu có kết nối)
+                    _ = NetworkManager.Instance.SendMessage(new CloseConnectionModel(NetworkManager.Instance.Host, address));
+
                     Application.Current.Dispatcher.Invoke(() =>
                     {
                         var conversation = conversations[address];
@@ -298,6 +388,13 @@ namespace ChatP2P.Model
                 return null;
             }
         }
+
+        // Gửi thông báo lên Notification bar
+        public void SendNotification(string message)
+        {
+            NetworkManager.Instance.NotificationManager?.AddNotification(message);
+        }
+
         // Xử lý khi ứng dụng đóng (lưu dữ liệu nếu cần)
         public void OnExit()
         {
@@ -314,6 +411,31 @@ namespace ChatP2P.Model
                     foreach (var conversation in conversations.Values)
                     {
                         inactiveConversations.Add(conversation);
+                    }
+                });
+
+                // Lưu lịch sử trò chuyện
+                serializer.Save(conversations.Values);
+            }
+        }
+
+        // Tải lịch sử trò chuyện từ bộ nhớ
+        public void Load()
+        {
+            lock (_lock)
+            {
+                var restored = serializer.Load();
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    conversations.Clear();
+                    activeConversations.Clear();
+                    inactiveConversations.Clear();
+
+                    foreach (var conv in restored)
+                    {
+                        conv.IsActive = false;
+                        conversations[conv.User.Address] = conv;
+                        inactiveConversations.Add(conv);
                     }
                 });
             }
