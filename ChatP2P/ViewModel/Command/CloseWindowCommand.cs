@@ -7,6 +7,7 @@ using System.Windows.Input;
 
 namespace ChatP2P.ViewModel.Command
 {
+   
     public class CloseWindowCommand : ICommand
     {
         public CloseWindowCommand(Action<object> execute)

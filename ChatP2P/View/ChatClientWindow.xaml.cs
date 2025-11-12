@@ -1,4 +1,6 @@
-﻿using ChatP2P.ViewModel;
+﻿using ChatP2P.Model;
+using ChatP2P.ViewModel;
+using ChatP2P.ViewModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,11 +14,10 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using ChatP2P.Model;
 
 namespace ChatP2P.View
 {
-
+  
     public partial class ChatClientWindow : Window
     {
         public ChatClientWindow()

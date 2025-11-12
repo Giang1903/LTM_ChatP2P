@@ -6,19 +6,14 @@ using System.Windows;
 
 namespace ChatP2P.Model
 {
-    /// <summary>
-    /// ConversationManager quản lý tất cả các cuộc hội thoại trong ứng dụng.
-    /// Sử dụng Singleton pattern để đảm bảo chỉ có một instance duy nhất.
-    /// </summary>
+    // ConversationManager quản lý tất cả các cuộc hội thoại trong ứng dụng.
+    // Sử dụng Singleton pattern để đảm bảo chỉ có một instance duy nhất.
     internal class ConversationManager
     {
-        // Singleton pattern với Lazy initialization
         private static readonly Lazy<ConversationManager> _instance = 
             new Lazy<ConversationManager>(() => new ConversationManager());
 
-        /// <summary>
-        /// Instance duy nhất của ConversationManager
-        /// </summary>
+        // Instance duy nhất của ConversationManager
         public static ConversationManager Instance => _instance.Value;
 
         // Dictionary lưu trữ tất cả conversations: key = địa chỉ IP:Port, value = ConversationModel
@@ -54,10 +49,7 @@ namespace ChatP2P.Model
             activeConversations = new ObservableCollection<ConversationModel>();
             inactiveConversations = new ObservableCollection<ConversationModel>();
         }
-
-        /// <summary>
         /// Property trả về conversation hiện tại đang được chọn
-        /// </summary>
         public string CurrentConversation
         {
             get { return currentConversation; }
@@ -81,11 +73,7 @@ namespace ChatP2P.Model
                 }
             }
         }
-
-        /// <summary>
-        /// Lấy danh sách các conversations đang active (có kết nối TCP)
-        /// </summary>
-        /// <returns>ObservableCollection chứa các active conversations</returns>
+        // Lấy danh sách các conversations đang active (có kết nối TCP)
         public ObservableCollection<ConversationModel> GetActiveConversations()
         {
             lock (_lock)
@@ -126,11 +114,7 @@ namespace ChatP2P.Model
                 return activeConversations;
             }
         }
-
-        /// <summary>
-        /// Lấy danh sách các conversations không active (không có kết nối TCP)
-        /// </summary>
-        /// <returns>ObservableCollection chứa các inactive conversations</returns>
+        // Lấy danh sách các conversations không active (không có kết nối TCP)
         public ObservableCollection<ConversationModel> GetInactiveConversations()
         {
             lock (_lock)
@@ -172,9 +156,7 @@ namespace ChatP2P.Model
             }
         }
 
-        /// <summary>
-        /// Xử lý khi có yêu cầu kết nối mới
-        /// </summary>
+        // Xử lý khi có yêu cầu kết nối mới
         public void OnNewRequest(UserModel sender)
         {
             lock (_lock)
@@ -297,10 +279,7 @@ namespace ChatP2P.Model
                 });
             }
         }
-
-        /// <summary>
-        /// Nhận tin nhắn mới và thêm vào conversation tương ứng
-        /// </summary>
+        // Nhận tin nhắn mới và thêm vào conversation tương ứng
         public void ReceiveMessage(DataModel message)
         {
             lock (_lock)
@@ -330,10 +309,7 @@ namespace ChatP2P.Model
                 conversations[senderAddress].ReceiveMessage(message);
             }
         }
-
-        /// <summary>
-        /// Nhận tín hiệu buzz và kích hoạt sự kiện buzz
-        /// </summary>
+        // Nhận tín hiệu buzz và kích hoạt sự kiện buzz
         public void ReceiveBuzz(DataModel buzz)
         {
             lock (_lock)
@@ -369,10 +345,7 @@ namespace ChatP2P.Model
                 }
             }
         }
-
-        /// <summary>
-        /// Đóng conversation (đánh dấu là inactive)
-        /// </summary>
+        // Đóng conversation (đánh dấu là inactive)
         public void CloseConversation(string address)
         {
             lock (_lock)
@@ -403,10 +376,7 @@ namespace ChatP2P.Model
                 }
             }
         }
-
-        /// <summary>
-        /// Lấy conversation theo địa chỉ
-        /// </summary>
+        // Lấy conversation theo địa chỉ
         public ConversationModel GetConversation(string address)
         {
             lock (_lock)

@@ -5,10 +5,8 @@ using System.Windows;
 
 namespace ChatP2P.Model
 {
-    /// <summary>
-    /// Lớp ConversationModel định nghĩa một cuộc hội thoại giữa người dùng hiện tại và một người dùng khác.
-    /// Chứa ObservableCollection tin nhắn và các thông tin liên quan đến cuộc trò chuyện.
-    /// </summary>
+    //Lớp ConversationModel định nghĩa một cuộc hội thoại giữa người dùng hiện tại và một người dùng khác.
+    // Chứa ObservableCollection tin nhắn và các thông tin liên quan đến cuộc trò chuyện.
     public class ConversationModel : INotifyPropertyChanged
     {
         private string endpoint;
@@ -53,9 +51,9 @@ namespace ChatP2P.Model
         }
 
         private bool isActive = false;
-        /// <summary>
-        /// Xác định conversation có đang active (có kết nối TCP) hay không
-        /// </summary>
+       
+        // Xác định conversation có đang active (có kết nối TCP) hay không
+ 
         public bool IsActive 
         { 
             get { return isActive; } 
@@ -78,9 +76,8 @@ namespace ChatP2P.Model
             } 
         }
 
-        /// <summary>
-        /// ObservableCollection chứa tất cả các tin nhắn trong cuộc hội thoại
-        /// </summary>
+        // ObservableCollection chứa tất cả các tin nhắn trong cuộc hội thoại
+ 
         private ObservableCollection<DataModel> messages = new ObservableCollection<DataModel>();
         public ObservableCollection<DataModel> Messages { get { return messages; } }
 
@@ -125,16 +122,16 @@ namespace ChatP2P.Model
             lastActivity = DateTime.Now;
         }
 
-        /// <summary>
-        /// Nhận và thêm tin nhắn mới vào conversation
-        /// </summary>
+
+        // Nhận và thêm tin nhắn mới vào conversation
+
         public void ReceiveMessage(DataModel message)
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
                 lastActivity = message.Date;
                 messages.Add(message);
-                if (User != null && !(ConversationManager.Instance.CurrentConversation == User.Address))
+                if (!(ConversationManager.Instance.CurrentConversation == User.Address))
                 {
                     unreadMessages = true;
                     UnreadBuzz = false;
@@ -143,14 +140,12 @@ namespace ChatP2P.Model
                 {
                     unreadMessages = false;
                 }
-                OnPropertyChanged(nameof(LastActivity));
-                OnPropertyChanged(nameof(LastActivityToString));
             });
+
         }
 
-        /// <summary>
-        /// Nhận và xử lý tín hiệu buzz
-        /// </summary>
+        // Nhận và xử lý tín hiệu buzz
+
         public void ReceiveBuzz(DataModel buzz)
         {
             Application.Current.Dispatcher.Invoke(() =>
@@ -170,9 +165,9 @@ namespace ChatP2P.Model
             });
         }
 
-        /// <summary>
-        /// Đánh dấu đã đọc tất cả tin nhắn
-        /// </summary>
+
+        // Đánh dấu đã đọc tất cả tin nhắn
+     
         public void MarkAsRead()
         {
             UnreadMessages = false;
