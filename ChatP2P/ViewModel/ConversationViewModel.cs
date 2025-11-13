@@ -1,9 +1,6 @@
 ﻿using ChatP2P.Model;
 using ChatP2P.ViewModel.Command;
 using System;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -17,173 +14,18 @@ namespace ChatP2P.ViewModel
 {
     internal class ConversationViewModel : INotifyPropertyChanged
     {
-        private ConversationModel currentConversation;
-        private readonly SendMessageCommand sendMessageCommand;
-        private readonly SendBuzzCommand sendBuzzCommand;
-        private string outgoingMessage = string.Empty;
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        public ConversationModel CurrentConversation
-        {
-            get => currentConversation;
-            private set
-            {
-                if (!ReferenceEquals(currentConversation, value))
-                {
-                    if (currentConversation != null)
-                    {
-                        currentConversation.PropertyChanged -= OnConversationPropertyChanged;
-                    }
-
-                    currentConversation = value;
-
-                    if (currentConversation != null)
-                    {
-                        currentConversation.PropertyChanged += OnConversationPropertyChanged;
-                    }
-
-                    OnPropertyChanged();
-                    OnPropertyChanged(nameof(Messages));
-                    OnPropertyChanged(nameof(ConversationName));
-                    OnPropertyChanged(nameof(HasConversation));
-                    OnPropertyChanged(nameof(CanSend));
-                    sendMessageCommand.RaiseCanExecuteChanged();
-                    sendBuzzCommand.RaiseCanExecuteChanged();
-                }
-            }
-        }
-
-        public ObservableCollection<DataModel>? Messages => currentConversation?.Messages;
-
-        public string ConversationName => currentConversation?.Username ?? "Chưa chọn cuộc trò chuyện";
-
-        public bool HasConversation => currentConversation != null;
-
-        public bool CanSend => currentConversation?.IsActive == true;
-
-        public string OutgoingMessage
-        {
-            get => outgoingMessage;
-            set
-            {
-                if (outgoingMessage != value)
-                {
-                    outgoingMessage = value;
-                    OnPropertyChanged();
-                    sendMessageCommand.RaiseCanExecuteChanged();
-                }
-            }
-        }
-
-        public ICommand SendMessage => sendMessageCommand;
-        public ICommand SendBuzz => sendBuzzCommand;
-
-        public ConversationViewModel()
-        {
-            sendMessageCommand = new SendMessageCommand(this);
-            sendBuzzCommand = new SendBuzzCommand(this);
-        }
-
-        public void SetCurrentConversation(ConversationModel conversation)
-        {
-            CurrentConversation = conversation;
-
-            if (conversation != null)
-            {
-                ConversationManager.Instance.CurrentConversation = conversation.Endpoint;
-                conversation.MarkAsRead();
-            }
-        }
-
-        public async Task SendMessageAsync()
-        {
-            if (!CanSend || string.IsNullOrWhiteSpace(OutgoingMessage) || CurrentConversation == null)
-            {
-                return;
-            }
-
-            var host = NetworkManager.Instance.Host;
-            if (host == null)
-            {
-                NotificationManager.Instance.AddNotification("⚠️ Chưa khởi tạo thông tin người dùng cục bộ.");
-                return;
-            }
-
-            string messageText = OutgoingMessage.Trim();
-            OutgoingMessage = string.Empty;
-
-            try
-            {
-                var message = new MessageModel(host, CurrentConversation.Endpoint, messageText);
-                await NetworkManager.Instance.SendMessage(message);
-                CurrentConversation.ReceiveMessage(message);
-                CurrentConversation.MarkAsRead();
-                OnPropertyChanged(nameof(Messages));
-            }
-            catch (Exception ex)
-            {
-                NotificationManager.Instance.AddNotification($"❌ Gửi tin nhắn thất bại. {ex.Message}");
-            }
-        }
-
-        public async Task SendBuzzAsync()
-        {
-            if (!CanSend || CurrentConversation == null)
-            {
-                return;
-            }
-
-            var host = NetworkManager.Instance.Host;
-            if (host == null)
-            {
-                NotificationManager.Instance.AddNotification("⚠️ Chưa khởi tạo thông tin người dùng cục bộ.");
-                return;
-            }
-
-            try
-            {
-                var buzz = new BuzzModel(host, CurrentConversation.Endpoint);
-                await NetworkManager.Instance.SendMessage(buzz);
-                CurrentConversation.ReceiveBuzz(buzz);
-            }
-            catch (Exception ex)
-            {
-                NotificationManager.Instance.AddNotification($"❌ Không thể gửi buzz. {ex.Message}");
-            }
-        }
-
-        private void OnConversationPropertyChanged(object? sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == nameof(ConversationModel.IsActive))
-            {
-                OnPropertyChanged(nameof(CanSend));
-                sendMessageCommand.RaiseCanExecuteChanged();
-                sendBuzzCommand.RaiseCanExecuteChanged();
-            }
-        }
-
-        protected void OnPropertyChanged([CallerMemberName] string propertyName = "")
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
+        // Tham chiếu đến cuộc trò chuyện hiện đang chọn
         private ConversationModel conversation = null;
 
-        /// <summary>
-        /// An observable collection of all messages in the currently selected conversation.
-        /// </summary>
+        // Danh sách tin nhắn trong cuộc trò chuyện hiện tại
         private ObservableCollection<DataModel> messages = new ObservableCollection<DataModel>();
         public ObservableCollection<DataModel> Messages { get { return messages; } }
 
-        /// <summary>
-        /// Boolean that is true if its possible to send a message in the currently selected conversation.
-        /// </summary>
+        // Kiểm tra có thể gửi tin nhắn không
         public bool CanSendMessage { get { return conversation != null && ConversationManager.Instance.CurrentConversationIsActive; } }
         public bool CanReconnect { get { return conversation != null && !ConversationManager.Instance.CurrentConversationIsActive; } }
 
-        /// <summary>
-        /// Boolean that trigger the GUI to autoscroll to the bottom when a new message is received.
-        /// </summary>
+        // Tự động cuộn xuống khi có tin nhắn mới
         private bool shouldScrollToEnd;
         public bool ShouldScrollToEnd
         {
@@ -195,9 +37,7 @@ namespace ChatP2P.ViewModel
             }
         }
 
-        /// <summary>
-        /// The message that the user wants to send. Binds to a textbox in the GUI.
-        /// </summary>
+        // Tin nhắn người dùng muốn gửi (liên kết textbox GUI)
         private string message;
         public string Message
         {
@@ -205,9 +45,7 @@ namespace ChatP2P.ViewModel
             set { message = value; OnPropertyChanged("Message"); }
         }
 
-        /// <summary>
-        /// Command that is triggered when the user wants to send a new message.
-        /// </summary>
+        // Lệnh gửi tin nhắn
         private ICommand sendMessageCommand = null;
         public ICommand SendMessageCommand
         {
@@ -222,9 +60,7 @@ namespace ChatP2P.ViewModel
             set { sendMessageCommand = value; }
         }
 
-        /// <summary>
-        /// Command that is triggered when the user wants to send a buzz.
-        /// </summary>
+        // Lệnh gửi buzz
         private ICommand sendBuzzCommand = null;
         public ICommand SendBuzzCommand
         {
@@ -239,9 +75,7 @@ namespace ChatP2P.ViewModel
             set { sendBuzzCommand = value; }
         }
 
-        /// <summary>
-        /// Command that is triggered when the user wants to reconnect to an old conversation.
-        /// </summary>
+        // Lệnh kết nối lại cuộc trò chuyện
         private ICommand reconnectCommand = null;
         public ICommand ReconnectCommand
         {
@@ -257,6 +91,8 @@ namespace ChatP2P.ViewModel
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
+
+        // Thông báo thay đổi thuộc tính
         private void OnPropertyChanged([CallerMemberName] string propertyName = "")
         {
             if (PropertyChanged != null)
@@ -265,6 +101,7 @@ namespace ChatP2P.ViewModel
             }
         }
 
+        // Cập nhật conversation khi dữ liệu thay đổi
         private void ConversationPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             this.UpdateConversation();
@@ -273,21 +110,16 @@ namespace ChatP2P.ViewModel
         private void ConversationPropertyChanged(object sender, EventArgs e)
         {
             this.UpdateConversation();
-
         }
 
-        /// <summary>
-        /// Constructor that setups the eventlisteners.
-        /// </summary>
+        // Khởi tạo: thiết lập các sự kiện lắng nghe
         public ConversationViewModel()
         {
             ConversationManager.Instance.PropertyChanged += ConversationPropertyChanged;
             ConversationManager.Instance.conversationsUpdatedEvent += ConversationPropertyChanged;
         }
 
-        /// <summary>
-        /// Updates the conversation and sends a message to the Conversation Manager.
-        /// </summary>
+        // Gửi tin nhắn
         public void SendMessage()
         {
             UpdateConversation();
@@ -300,9 +132,7 @@ namespace ChatP2P.ViewModel
             Message = "";
         }
 
-        /// <summary>
-        /// Sends a buzz to the Conversation Manager.
-        /// </summary>
+        // Gửi buzz
         public void SendBuzz()
         {
             if (this.conversation != null)
@@ -312,9 +142,7 @@ namespace ChatP2P.ViewModel
             }
         }
 
-        /// <summary>
-        /// Loads the conversation that is currently selected by the user.
-        /// </summary>
+        // Cập nhật conversation hiện tại từ ConversationManager
         private void UpdateConversation()
         {
             conversation = ConversationManager.Instance.GetConversation();
@@ -332,9 +160,7 @@ namespace ChatP2P.ViewModel
             OnPropertyChanged("CanReconnect");
         }
 
-        /// <summary>
-        /// Sends a request to the Network Manager that the user wants to reconnect to a specific ip and port.
-        /// </summary>
+        // Thử kết nối lại cuộc trò chuyện với ip và port cụ thể
         public void AttemptReconnection()
         {
             try
@@ -345,11 +171,8 @@ namespace ChatP2P.ViewModel
             }
             catch (KeyNotFoundException e)
             {
-                ConversationManager.Instance.SendNotification($"❌ Error: Cannot reconnect to {conversation.User.Ip}:{conversation.User.Port}.");
+                ConversationManager.Instance.SendNotification($"❌ Lỗi: Không thể kết nối lại với {conversation.User.Ip}:{conversation.User.Port}.");
             }
-
         }
-
     }
-
 }

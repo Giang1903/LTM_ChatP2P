@@ -19,10 +19,10 @@ namespace ChatP2P.View.UserControls
 {
     public partial class NotificationBar : UserControl
     {
-        public NotificationBar()
-        {
-            InitializeComponent();
-            this.DataContext = new NotificationBarViewModel(new NotificationManager());
+            public NotificationBar()
+            {
+                InitializeComponent();
+                this.DataContext = new NotificationBarViewModel(new NotificationManager());
+            }
         }
     }
-}

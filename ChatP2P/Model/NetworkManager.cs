@@ -1,54 +1,64 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Formats.Asn1;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
+using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
+using System.Windows.Documents;
+using System.Xml.Linq;
 
 namespace ChatP2P.Model
 {
-    /// Lớp NetworkManager chịu trách nhiệm quản lý toàn bộ hoạt động mạng:
-    /// - Lắng nghe (Listen)
-    /// - Kết nối (Connect)
-    /// - Gửi & nhận tin nhắn (SendMessage / ManageClientConnection)
-    /// - Đóng kết nối
+    // Lớp singleton quản lý tất cả yêu cầu mạng.
+    // Mọi tin nhắn gửi/nhận qua mạng đều đi qua lớp này, mỗi server và client chạy trên luồng riêng.
     public sealed class NetworkManager
     {
-        // Singleton (chỉ có 1 thể hiện duy nhất trong toàn ứng dụng)
         private static readonly Lazy<NetworkManager> _networkManager = new Lazy<NetworkManager>(() => new NetworkManager());
 
         private NotificationManager? notificationManager = null;
+
+        // Lấy hoặc gán đối tượng NotificationManager (được khởi tạo thông qua ConversationManager)
         public NotificationManager NotificationManager { get { return notificationManager; } set { notificationManager = value; } }
 
-        // Danh sách các kết nối hiện có: key = địa chỉ IP:port, value = đối tượng TcpClient tương ứng
         private Dictionary<string, TcpClient> connections;
-        private readonly object _lock = new(); // Đảm bảo thread an toàn khi truy cập connections
+        private readonly object _lock = new();
+        private Protocol protocol = new();
+        private UserModel? host;
+        private TcpListener? server = null;
 
-        private Protocol protocol = new();     // Giao thức đóng gói & giải mã dữ liệu
-        private UserModel? host;               // Lưu thông tin người dùng hiện tại (máy chủ)
-        private TcpListener? server = null;    // Dùng để lắng nghe các kết nối đến
         private CancellationTokenSource cts = new CancellationTokenSource();
 
-        // Sự kiện thông báo khi bắt đầu lắng nghe thành công hoặc thất bại
         public event EventHandler listenerSuccessEvent;
         public event EventHandler listenerFailedEvent;
 
-        // Hàm khởi tạo private để đảm bảo chỉ có thể khởi tạo qua Instance
+        // Khởi tạo đối tượng NetworkManager toàn cục
         private NetworkManager()
         {
             connections = new Dictionary<string, TcpClient>();
         }
 
-        //Truy cập thể hiện duy nhất của NetworkManager 
-        public static NetworkManager Instance => _networkManager.Value;
+        // Trả về thể hiện duy nhất của NetworkManager
+        public static NetworkManager Instance
+        {
+            get
+            {
+                return _networkManager.Value;
+            }
+        }
 
-        //Trả về thông tin người dùng đang host 
-        public UserModel Host => host;
-        //Quản lý luồng nhận dữ liệu từ client — đọc và xử lý từng loại message khác nhau.
+        // Lấy thông tin người dùng hiện tại
+        public UserModel Host { get { return host; } }
+
+        // Quản lý kết nối client (xử lý tin nhắn gửi/nhận)
         private async Task ManageClientConnection(TcpClient client)
         {
             string clientAddress = client.Client.RemoteEndPoint.ToString();
@@ -60,6 +70,7 @@ namespace ChatP2P.Model
                 while (!exit)
                 {
                     Byte[] bytes = new byte[4096];
+                    string? data = null;
                     NetworkStream stream = client.GetStream();
                     DataModel message;
 
@@ -68,24 +79,23 @@ namespace ChatP2P.Model
                     {
                         try
                         {
-                            // Giải mã thông điệp nhận được từ byte[]
                             message = protocol.Decode(bytes);
                         }
                         catch (JsonSerializationException)
                         {
                             exit = true;
-                            notificationManager?.AddNotification($"❌ {clientAddress}: Không giải mã được tin nhắn từ {clientName}.");
+                            notificationManager.AddNotification($"❌ {clientAddress}: Không thể giải mã tin nhắn từ {clientName}. Đang đóng kết nối.");
                             break;
                         }
                         catch (ArgumentException)
                         {
                             exit = true;
-                            notificationManager?.AddNotification($"❌ {clientAddress}: Gói tin sai phiên bản giao thức.");
+                            notificationManager.AddNotification($"❌ {clientAddress}: Phiên bản giao thức sai. Đang đóng kết nối.");
                             break;
                         }
 
-                        // Xử lý các loại message khác nhau:
-                        if (message is ConnectionRequestModel) // Yêu cầu kết nối ban đầu
+                        // Xử lý từng loại tin nhắn khác nhau
+                        if (message is ConnectionRequestModel) // yêu cầu kết nối ban đầu
                         {
                             ConversationManager.Instance.OnNewRequest(message.Sender);
                             connections[message.SenderAddr] = connections[clientAddress];
@@ -93,57 +103,66 @@ namespace ChatP2P.Model
                             clientAddress = message.SenderAddr;
                             clientName = message.Sender.Name;
                         }
-                        else if (message is AcceptRequestModel) // Chấp nhận kết nối
+                        else if (message is AcceptRequestModel) // chấp nhận kết nối
                         {
                             clientName = message.Sender.Name;
                             clientAddress = message.SenderAddr;
-                            notificationManager?.AddNotification($"✔️ {clientAddress}: {clientName} đã chấp nhận kết nối!");
+                            if (notificationManager != null)
+                                notificationManager.AddNotification($"✔️ {clientAddress}: {clientName} đã chấp nhận yêu cầu kết nối! Giờ bạn có thể trò chuyện.");
                             ConversationManager.Instance.InitializeConversation(message.Sender);
                         }
-                        else if (message is RefuseRequestModel) // Từ chối kết nối
+                        else if (message is RefuseRequestModel) // từ chối kết nối
                         {
                             clientAddress = message.SenderAddr;
-                            notificationManager?.AddNotification($"❌ {clientAddress}: {message.Sender.Name} đã từ chối kết nối.");
+                            if (notificationManager != null)
+                                notificationManager.AddNotification($"❌ {clientAddress}: {message.Sender.Name} đã từ chối yêu cầu kết nối.");
                             exit = true;
                             break;
                         }
-                        else if (message is CloseConnectionModel) // Đóng kết nối
+                        else if (message is CloseConnectionModel) // đóng kết nối
                         {
                             clientAddress = message.SenderAddr;
-                            notificationManager?.AddNotification($"❌ {clientAddress}: {message.Sender.Name} đã đóng trò chuyện.");
+                            if (notificationManager != null)
+                                notificationManager.AddNotification($"❌ {clientAddress}: {message.Sender.Name} đã đóng cuộc trò chuyện.");
                             exit = true;
                             break;
                         }
-                        else if (message is MessageModel) // Tin nhắn văn bản
+                        else if (message is MessageModel) // tin nhắn thông thường
                         {
                             ConversationManager.Instance.ReceiveMessage(message);
                         }
-                        else if (message is BuzzModel) // Tín hiệu “Buzz”
+                        else if (message is BuzzModel) // tín hiệu buzz
                         {
                             ConversationManager.Instance.ReceiveBuzz(message);
                         }
-
-                        bytes = new byte[4096]; // reset bộ đệm
+                        bytes = new byte[4096];
                     }
 
                     if (exit)
                         break;
                 }
             }
-            catch (SocketException)
+            catch (SocketException e)
             {
-                notificationManager?.AddNotification($"❗️ {clientAddress}: Kết nối đến {clientName} bị gián đoạn.");
+                if (notificationManager != null)
+                {
+                    notificationManager.AddNotification($"❗️ {clientAddress}: Kết nối đến {clientName} bị ngắt bất ngờ.");
+                }
             }
-            catch (IOException)
+            catch (IOException e)
             {
-                notificationManager?.AddNotification($"❗️ {clientAddress}: Không thể đọc dữ liệu từ {clientName}, kết nối sẽ bị đóng.");
+                if (notificationManager != null)
+                {
+                    notificationManager.AddNotification($"❗️ {clientAddress}: Lỗi đọc dữ liệu từ {clientName}. Kết nối sẽ đóng.");
+                }
             }
             finally
             {
                 client.Close();
-                if (!exit)
-                    notificationManager?.AddNotification($"❌ {clientAddress}: Kết nối đến {clientName} đã đóng.");
-
+                if (!exit && notificationManager != null)
+                {
+                    notificationManager.AddNotification($"❌ {clientAddress}: Kết nối đến {clientName} đã bị đóng.");
+                }
                 lock (_lock)
                 {
                     ConversationManager.Instance.CloseConversation(clientAddress);
@@ -151,11 +170,13 @@ namespace ChatP2P.Model
                 }
             }
         }
-        // Bắt đầu lắng nghe kết nối đến (từ các peer khác).
+
+        // Bắt đầu lắng nghe kết nối mới
         public async Task Listen(UserModel user)
         {
             connections.Clear();
             host = user;
+            TcpClient incomingClient;
 
             IPAddress localAddr = IPAddress.Parse(host.Ip);
             Int32 portInt = Convert.ToInt32(host.Port);
@@ -164,7 +185,6 @@ namespace ChatP2P.Model
             {
                 server = new TcpListener(localAddr, portInt);
                 server.Start();
-                listenerSuccessEvent?.Invoke(this, EventArgs.Empty);
             }
             catch (SocketException)
             {
@@ -172,54 +192,68 @@ namespace ChatP2P.Model
                 return;
             }
 
-            // Vòng lặp chính lắng nghe client mới
+            // Lặp liên tục để lắng nghe các kết nối mới
             while (!cts.Token.IsCancellationRequested)
             {
                 if (server.Pending())
                 {
-                    TcpClient incomingClient = await server.AcceptTcpClientAsync();
-
+                    incomingClient = await server.AcceptTcpClientAsync();
                     lock (_lock)
                     {
                         string clientAddress = incomingClient.Client.RemoteEndPoint.ToString();
                         connections[clientAddress] = incomingClient;
                     }
-
-                    // Xử lý client mới trên thread riêng
                     Task.Run(() => ManageClientConnection(incomingClient).ConfigureAwait(false));
                 }
                 else
                 {
-                    await Task.Delay(100); // nghỉ nhẹ để tránh chiếm CPU
+                    await Task.Delay(100);
                 }
             }
         }
-        // Kiểm tra xem port có đang bị chiếm không.
+
+        // Kiểm tra cổng có đang được sử dụng không
         public static bool IsPortOccupied(string port)
         {
             var activeConnections = IPGlobalProperties.GetIPGlobalProperties().GetActiveTcpListeners();
-            return activeConnections.Any(c => c.Port == Convert.ToInt32(port));
+            foreach (var activeConnection in activeConnections)
+            {
+                if (activeConnection.Port == Convert.ToInt32(port))
+                { return true; }    
+            }
+            return false;
         }
 
-        // Lấy địa chỉ IP nội bộ của máy hiện tại.
+        // Lấy địa chỉ IP của máy
         public static string GetIpAddress()
         {
             var host = Dns.GetHostEntry(Dns.GetHostName());
-            foreach (var ip in host.AddressList)
+            string found_ip = null;
+            try
             {
-                if (ip.AddressFamily == AddressFamily.InterNetwork)
-                    return ip.ToString();
+                foreach (var ip in host.AddressList)
+                {
+                    if (ip.AddressFamily == AddressFamily.InterNetwork)
+                    {
+                        found_ip = ip.ToString();
+                        break;
+                    }
+                }
             }
-            return null;
+            catch (SocketException e)
+            {
+                found_ip = null;
+            }
+            return found_ip;
         }
-        // Đóng server và thông báo đến tất cả các client.
+
+        // Đóng server lắng nghe
         public async Task CloseServer()
         {
             var sendTasks = connections.Select(connection =>
                 SendMessage(new CloseConnectionModel(host, connection.Key)));
 
             await Task.WhenAll(sendTasks);
-
             ConversationManager.Instance.OnExit();
 
             if (server != null)
@@ -229,21 +263,23 @@ namespace ChatP2P.Model
                 server = null;
             }
         }
-        // Gửi yêu cầu kết nối đến một IP cụ thể.
+
+        // Kết nối đến IP và cổng cụ thể
         public async Task Connect(string ip, string port)
         {
             string targetIp = ip + ":" + port;
-            notificationManager?.AddNotification($"📡 Đang gửi yêu cầu kết nối đến {targetIp}...");
+            notificationManager.AddNotification($"❗ Đang gửi yêu cầu kết nối đến {targetIp}...");
             Int32 portInt = Convert.ToInt32(port);
             TcpClient client = new TcpClient();
 
             try
             {
+                IPAddress localAddr = IPAddress.Parse(ip);
                 await client.ConnectAsync(ip, portInt);
             }
-            catch (SocketException)
+            catch (SocketException e)
             {
-                notificationManager?.AddNotification($"❌ Không có máy chủ nào lắng nghe tại {targetIp}.");
+                notificationManager.AddNotification($"❌ Không có host nào đang lắng nghe tại {targetIp}. Kết nối thất bại.");
                 return;
             }
 
@@ -252,7 +288,7 @@ namespace ChatP2P.Model
             _ = Task.Run(() => ManageClientConnection(client).ConfigureAwait(false));
         }
 
-        //Gửi một gói tin (DataModel) đến người nhận.
+        // Gửi tin nhắn (mọi loại DataModel)
         public async Task SendMessage(DataModel dataModel)
         {
             NetworkStream stream = connections[dataModel.Receiver].GetStream();
@@ -262,28 +298,35 @@ namespace ChatP2P.Model
             }
             catch (ArgumentOutOfRangeException)
             {
-                notificationManager?.AddNotification($"❌ Tin nhắn quá dài, không thể gửi.");
+                if (notificationManager != null)
+                {
+                    notificationManager.AddNotification($"❌ Tin nhắn quá dài, không thể gửi.");
+                }
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                notificationManager?.AddNotification($"❌ Gửi tin nhắn đến {dataModel.Receiver} thất bại.");
+                if (notificationManager != null)
+                {
+                    notificationManager.AddNotification($"❌ Không thể gửi tin đến {dataModel.Receiver}");
+                }
             }
         }
 
-        //Gửi thông báo chấp nhận kết nối 
+        // Gửi tin chấp nhận kết nối
         public void AcceptRequest(UserModel user)
         {
             AcceptRequestModel msg = new AcceptRequestModel(Host, user.Address);
             SendMessage(msg);
         }
 
-        // Gửi thông báo từ chối kết nối 
+        // Gửi tin từ chối kết nối
         public void RefuseRequest(UserModel user)
         {
             RefuseRequestModel msg = new RefuseRequestModel(Host, user.Address);
             SendMessage(msg);
         }
-        // Kiểm tra client có đang kết nối không.
+
+        // Kiểm tra client có đang kết nối hay không
         public bool IsClientConnected(string addr)
         {
             return connections.ContainsKey(addr);

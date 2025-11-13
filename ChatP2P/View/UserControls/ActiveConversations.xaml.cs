@@ -1,5 +1,4 @@
 ﻿using ChatP2P.ViewModel;
-using ChatP2P.ViewModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,7 +16,7 @@ using System.Windows.Shapes;
 
 namespace ChatP2P.View.UserControls
 {
-    
+
     public partial class ActiveConversations : UserControl
     {
         public ActiveConversations()

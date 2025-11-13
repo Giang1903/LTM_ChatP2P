@@ -1,105 +1,107 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using Newtonsoft.Json;
+using System.Security.Cryptography;
+using System.Text;
+using System.Threading.Tasks;
+using System.IO;
 
 namespace ChatP2P.Model
 {
-    internal class ConversationSerializer
+    public class ConversationSerializer
     {
-        private readonly string storageDirectory;
-        private readonly string storageFilePath;
+        private string? hostEndpoint = null;
+        private string? hostName = null;
 
-        public ConversationSerializer()
-        {
-            storageDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ChatP2P");
-            storageFilePath = Path.Combine(storageDirectory, "conversations.json");
-        }
+        private readonly object _lock = new object();
 
-        private class SerializableConversation
-        {
-            public string Address { get; set; }
-            public string Name { get; set; }
-            public List<SerializableMessage> Messages { get; set; }
-        }
+        // Thư mục gốc lưu các cuộc trò chuyện
+        private string baseDirectory =>
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "SavedChats");
 
-        private class SerializableMessage
-        {
-            public string SenderAddr { get; set; }
-            public string ReceiverAddr { get; set; }
-            public string Message { get; set; }
-            public DateTime Date { get; set; }
-            public string Name { get; set; }
-        }
+        public ConversationSerializer() { }
 
-        public void Save(IEnumerable<ConversationModel> conversations)
+        // Lưu một cuộc trò chuyện
+        public void Save(ConversationModel conversationModel)
         {
-            if (!Directory.Exists(storageDirectory))
+            InitializeHost();
+            // Tạo thư mục dựa trên tên và endpoint của host
+            string directoryPath = Path.Combine(baseDirectory, $"{hostName}_{hostEndpoint}");
+            Directory.CreateDirectory(directoryPath);
+
+            JsonSerializerSettings settings = new JsonSerializerSettings
             {
-                Directory.CreateDirectory(storageDirectory);
-            }
+                TypeNameHandling = TypeNameHandling.All
+            };
 
-            var data = conversations.Select(conv => new SerializableConversation
-            {
-                Address = conv.User.Address,
-                Name = conv.User.Name,
-                Messages = conv.Messages.Select(m => new SerializableMessage
-                {
-                    SenderAddr = m.SenderAddr,
-                    ReceiverAddr = m.ReceiverAddr,
-                    Message = m.Message,
-                    Date = m.Date,
-                    Name = m.Name
-                }).ToList()
-            }).ToList();
+            string filePath = Path.Combine(directoryPath, $"{conversationModel.User.Name}_{conversationModel.User.Ip}-{conversationModel.User.Port}.json");
 
-            var json = JsonConvert.SerializeObject(data, Formatting.Indented);
-            File.WriteAllText(storageFilePath, json);
+            string json = JsonConvert.SerializeObject(conversationModel, settings);
+
+            File.WriteAllText(filePath, json);
         }
 
-        public IEnumerable<ConversationModel> Load()
+        // Tải một cuộc trò chuyện từ file JSON
+        public ConversationModel Load(string filePath)
         {
-            if (!File.Exists(storageFilePath))
+            JsonSerializerSettings settings = new JsonSerializerSettings
             {
-                return Enumerable.Empty<ConversationModel>();
-            }
+                TypeNameHandling = TypeNameHandling.Auto
+            };
 
+            string json = File.ReadAllText(filePath);
+
+            ConversationModel conversation = JsonConvert.DeserializeObject<ConversationModel>(json, settings);
+
+            return conversation;
+        }
+
+        // Tải tất cả cuộc trò chuyện từ thư mục lịch sử
+        public List<ConversationModel> LoadAll()
+        {
             try
             {
-                var json = File.ReadAllText(storageFilePath);
-                var data = JsonConvert.DeserializeObject<List<SerializableConversation>>(json) ?? new List<SerializableConversation>();
+                InitializeHost();
+                List<ConversationModel> conversationModels = new List<ConversationModel>();
 
-                var restored = new List<ConversationModel>();
-                foreach (var sc in data)
+                string directoryPath = Path.Combine(baseDirectory, $"{hostName}_{hostEndpoint}");
+
+                if (Directory.Exists(directoryPath))
                 {
-                    var parts = sc.Address.Split(':');
-                    string ip = parts.Length > 0 ? parts[0] : "";
-                    string port = parts.Length > 1 ? parts[1] : "";
-                    var user = new UserModel(ip, port, sc.Name);
-                    var conv = new ConversationModel(user);
+                    string[] files = Directory.GetFiles(directoryPath);
 
-                    foreach (var sm in sc.Messages.OrderBy(m => m.Date))
+                    try
                     {
-                        // Khôi phục theo hướng tin nhắn lưu trữ
-                        var senderParts = (sm.SenderAddr ?? "").Split(':');
-                        var senderUser = senderParts.Length >= 2 && sm.SenderAddr == user.Address
-                            ? user
-                            : new UserModel(senderParts.ElementAtOrDefault(0) ?? "", senderParts.ElementAtOrDefault(1) ?? "", sm.Name);
-
-                        var msg = new MessageModel(senderUser, sm.ReceiverAddr, sm.Message);
-                        // Không có setter Date trong DataModel, nên LastActivity sẽ dựa vào thời điểm thêm
-                        conv.ReceiveMessage(msg);
+                        foreach (string file in files)
+                        {
+                            ConversationModel conversation = Load(file);
+                            conversationModels.Add(conversation);
+                        }
                     }
-
-                    restored.Add(conv);
+                    catch (Exception ex)
+                    {
+                        // Ghi log lỗi nếu đọc file không thành công
+                        System.Diagnostics.Debug.WriteLine("Lỗi khi đọc file: " + ex.Message);
+                    }
                 }
 
-                return restored;
+                return conversationModels;
             }
-            catch
+            catch (Exception ex)
             {
-                return Enumerable.Empty<ConversationModel>();
+                // Trả về danh sách rỗng nếu xảy ra lỗi
+                return new List<ConversationModel>();
+            }
+        }
+
+        // Khởi tạo thông tin host nếu chưa có
+        private void InitializeHost()
+        {
+            if (hostEndpoint == null || hostName == null)
+            {
+                hostEndpoint = NetworkManager.Instance.Host.Ip + "-" + NetworkManager.Instance.Host.Port;
+                hostName = NetworkManager.Instance.Host.Name;
             }
         }
     }

@@ -1,14 +1,15 @@
-﻿using ChatP2P.Model;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ChatP2P.Model;
 using System.Windows;
+using System.Windows.Controls;
 
-namespace ChatP2P.View.Ulitilies
+namespace ChatP2P.View.Utilities
 {
-    internal class MessageTemplateSelector
+    public class MessageTemplateSelector : DataTemplateSelector
     {
         public DataTemplate UserMessageTemplate { get; set; }
         public DataTemplate OtherUserMessageTemplate { get; set; }

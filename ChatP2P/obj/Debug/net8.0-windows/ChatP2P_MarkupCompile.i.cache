@@ -4,15 +4,15 @@
 winexe
 C#
 .cs
-D:\LTM\LTM_ChatP2P\ChatP2P\obj\Debug\net8.0-windows\
+D:\LTM_ChatP2P\ChatP2P\obj\Debug\net8.0-windows\
 ChatP2P
 none
 false
 TRACE;DEBUG;NET;NET8_0;NETCOREAPP;WINDOWS;WINDOWS7_0;NET5_0_OR_GREATER;NET6_0_OR_GREATER;NET7_0_OR_GREATER;NET8_0_OR_GREATER;NETCOREAPP3_0_OR_GREATER;NETCOREAPP3_1_OR_GREATER;WINDOWS7_0_OR_GREATER
-D:\LTM\LTM_ChatP2P\ChatP2P\App.xaml
+D:\LTM_ChatP2P\ChatP2P\App.xaml
 8-741803651
 
-4579889542
+45-1315035846
 2001404037840
 MainWindow.xaml;View\ChatClientWindow.xaml;View\UserControls\ActiveConversations.xaml;View\UserControls\Conversation.xaml;View\UserControls\InactiveConversations.xaml;View\UserControls\NotificationBar.xaml;View\UserControls\PendingRequestBar.xaml;View\UserControls\SidebarRequestView.xaml;
 

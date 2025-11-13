@@ -1,5 +1,4 @@
 ﻿using ChatP2P.Model;
-using ChatP2P.ViewModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +8,7 @@ using System.Windows.Input;
 
 namespace ChatP2P.ViewModel.Command
 {
-  
+
     internal class RequestCommand : ICommand
     {
         private SidebarRequestViewModel parent;

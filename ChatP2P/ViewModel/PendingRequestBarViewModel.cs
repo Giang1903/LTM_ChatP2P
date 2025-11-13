@@ -12,14 +12,13 @@ using System.Windows.Input;
 
 namespace ChatP2P.ViewModel
 {
-  
+
     public class PendingRequestBarViewModel : INotifyPropertyChanged
     {
-     
         private string requestMessage = "";
         public string RequestMessage { get { return requestMessage; } set { requestMessage = $"{value} sent a chat request!"; OnPropertyChanged("RequestMessage"); } }
 
-  
+
         private ICommand acceptRequestCommand = null;
         public ICommand AcceptRequestCommand
         {
@@ -34,7 +33,7 @@ namespace ChatP2P.ViewModel
             set { acceptRequestCommand = value; }
         }
 
-    
+
         private ICommand declineRequestCommand = null;
         public ICommand DeclineRequestCommand
         {
@@ -49,7 +48,7 @@ namespace ChatP2P.ViewModel
             set { declineRequestCommand = value; }
         }
 
-   
+
         private bool hasNewRequest = false;
         public bool HasNewRequest { get { return hasNewRequest; } set { hasNewRequest = value; OnPropertyChanged("HasNewRequest"); } }
 
@@ -62,7 +61,7 @@ namespace ChatP2P.ViewModel
             }
         }
 
-     
+
         private void OnNewRequest(object sender, EventArgs e)
         {
             UserModel user = ConversationManager.Instance.GetPendingRequest();
@@ -70,20 +69,20 @@ namespace ChatP2P.ViewModel
             HasNewRequest = true;
         }
 
-       
+
         public PendingRequestBarViewModel()
         {
             ConversationManager.Instance.newRequestEvent += OnNewRequest;
         }
 
-     
+
         public void AcceptRequest()
         {
             HasNewRequest = false;
             ConversationManager.Instance.AcceptRequest();
         }
 
-      
+
         public void DeclineRequest()
         {
             HasNewRequest = false;

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ChatP2P.Model
 {
-	public class UserModel
+    public class UserModel
     {
         private string ip { get; }
         private string port { get; }

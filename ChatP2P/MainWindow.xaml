@@ -5,8 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ChatP2P"
         mc:Ignorable="d"
-                Title="Log in" Height="450" Width="300"
-        Icon="pack://application:,,,/Images/icon.ico">
+        Title="Log in" Height="450" Width="300"
+        Icon="/images/icon.ico">
 
 
     <Grid Background="{StaticResource BackgroundBrush}">
@@ -35,4 +35,3 @@
         <TextBlock HorizontalAlignment="Center" TextAlignment="Center" Grid.Row="7" Foreground="{StaticResource DeclineBrush}" TextWrapping="Wrap" Text="{Binding Path=ErrorMessage, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" FontWeight="Bold" Margin="15" VerticalAlignment="Center"/>
     </Grid>
 </Window>
-

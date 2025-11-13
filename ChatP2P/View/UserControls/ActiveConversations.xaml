@@ -46,8 +46,8 @@
 
                         <Ellipse Width="10" Height="10" Fill="#4CAF50" Margin="4,0,10,0" Grid.Column="0"/>
                         <TextBlock Text="{Binding Path=Username}" FontWeight="Bold" Grid.Column="1"/>
-                        <Image HorizontalAlignment="Center" VerticalAlignment="Center" Width="15" Height="15" Source="pack://application:,,,/Images/unread-message-icon.png" Visibility="{Binding Path=UnreadMessages, Converter={StaticResource BoolToVis}}" Grid.Column="2"/>
-                        <Image HorizontalAlignment="Center" VerticalAlignment="Center" Width="15" Height="15" Source="pack://application:,,,/Images/bell.png" Visibility="{Binding Path=UnreadBuzz, Converter={StaticResource BoolToVis}}" Grid.Column="2"/>
+                        <Image HorizontalAlignment="Center" VerticalAlignment="Center" Width="15" Height="15" Source="pack://application:,,,/images/unread-message-icon.png" Visibility="{Binding Path=UnreadMessages, Converter={StaticResource BoolToVis}}" Grid.Column="2"/>
+                        <Image HorizontalAlignment="Center" VerticalAlignment="Center" Width="15" Height="15" Source="pack://application:,,,/images/bell.png" Visibility="{Binding Path=UnreadBuzz, Converter={StaticResource BoolToVis}}" Grid.Column="2"/>
                     </Grid>
                 </DataTemplate>
             </ListView.ItemTemplate>

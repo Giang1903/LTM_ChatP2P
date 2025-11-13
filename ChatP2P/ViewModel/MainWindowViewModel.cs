@@ -1,11 +1,7 @@
 ﻿using ChatP2P.Model;
 using ChatP2P.View;
 using ChatP2P.ViewModel.Command;
-using ChatP2P.Model;
-using ChatP2P.View;
-using ChatP2P.ViewModel.Command;
 using System;
-using System.Collections.Generic;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -18,22 +14,22 @@ using System.Windows.Input;
 
 namespace ChatP2P.ViewModel
 {
-   
+    // ViewModel cho cửa sổ chính
     internal class MainWindowViewModel : INotifyPropertyChanged
     {
-      
+        // Thông báo lỗi hiển thị khi có lỗi xảy ra
         private string errorMessage = "";
         public string ErrorMessage { get { return errorMessage; } set { errorMessage = value; OnPropertyChanged("ErrorMessage"); } }
 
-        
+        // Danh sách các địa chỉ IP khả dụng để lắng nghe
         private ObservableCollection<string> ipAddresses = new ObservableCollection<string>();
         public ObservableCollection<string> IpAddresses { get { return ipAddresses; } }
 
-       
+        // Địa chỉ IP được chọn hiện tại
         private string selectedIp = "127.0.0.1";
         public string SelectedIp { get { return selectedIp; } set { selectedIp = value; } }
 
-    
+        // Tên người dùng nhập vào
         private string name;
         public string Name
         {
@@ -41,7 +37,7 @@ namespace ChatP2P.ViewModel
             set { name = value; }
         }
 
-      
+        // Cổng người dùng nhập vào
         private string port;
         public string Port
         {
@@ -49,7 +45,7 @@ namespace ChatP2P.ViewModel
             set { port = value; }
         }
 
-       
+        // Lệnh để bắt đầu cửa sổ chat
         private ICommand startClient;
         public ICommand StartClient
         {
@@ -73,7 +69,7 @@ namespace ChatP2P.ViewModel
             }
         }
 
-       
+        // Hàm khởi tạo: thiết lập sự kiện và lấy danh sách IP có sẵn
         public MainWindowViewModel()
         {
             NetworkManager.Instance.listenerFailedEvent += OnError;
@@ -81,7 +77,6 @@ namespace ChatP2P.ViewModel
             ipAddresses.Add("127.0.0.1");
 
             string localIp = NetworkManager.GetIpAddress();
-
             if (localIp != null)
             {
                 ipAddresses.Add(localIp);
@@ -90,20 +85,20 @@ namespace ChatP2P.ViewModel
             OnPropertyChanged("IpAddresses");
         }
 
-       
+        // Bắt đầu cửa sổ chat hoặc hiển thị lỗi nếu có vấn đề
         public void StartChatClient()
         {
             if (name.Length < 2)
             {
-                ErrorMessage = "Name must be at least two characters long.";
+                ErrorMessage = "Tên phải có ít nhất 2 ký tự.";
             }
             else if (!IsValidPort())
             {
-                ErrorMessage = "Please choose a port between 10 000 and 64 0000.";
+                ErrorMessage = "Vui lòng chọn cổng trong khoảng từ 10.000 đến 64.000.";
             }
             else if (NetworkManager.IsPortOccupied(port))
             {
-                ErrorMessage = "The port " + port + " is currently occupied.";
+                ErrorMessage = $"Cổng {port} hiện đang được sử dụng.";
             }
             else
             {
@@ -114,13 +109,13 @@ namespace ChatP2P.ViewModel
             }
         }
 
-     
+        // Hiển thị lỗi khi không thể lắng nghe cổng
         public void OnError(object sender, EventArgs e)
         {
-            ErrorMessage = $"Failed to start listening on port {port}";
+            ErrorMessage = $"Không thể lắng nghe trên cổng {port}.";
         }
 
-        
+        // Mở cửa sổ chat khi không có lỗi
         public void OnSuccess(object sender, EventArgs e)
         {
             ErrorMessage = "";
@@ -129,7 +124,7 @@ namespace ChatP2P.ViewModel
             chatClientWindow.ShowDialog();
         }
 
-    
+        // Kiểm tra xem cổng có hợp lệ không
         private bool IsValidPort()
         {
             Int32 portInt = 0;

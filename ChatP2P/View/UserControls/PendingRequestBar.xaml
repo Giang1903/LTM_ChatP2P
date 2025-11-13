@@ -41,7 +41,7 @@
             <ColumnDefinition Width="100"/>
         </Grid.ColumnDefinitions>
 
-        <Image Margin="5, 1, 1, 1" Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center" Width="25" Height="25" Source="pack://application:,,,/Images/add-friend.png"/>
+        <Image Margin="5, 1, 1, 1" Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center" Width="30" Height="30" Source="/images/add_friend.png"/>
 
         <Border Grid.Column="2" Background="{StaticResource AcceptBrush}" CornerRadius="10" Height="40" Width="90">
             <Button Style="{StaticResource HoverButton}" Command="{Binding Path=AcceptRequestCommand}" Content="Accept" 

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -28,7 +29,7 @@ namespace ChatP2P.Model
 
         public Protocol() { }
 
-      
+
         public byte[] Encode<T>(T dataModel) where T : DataModel
         {
             ProtocolWrapper wrapper = new ProtocolWrapper(dataModel);

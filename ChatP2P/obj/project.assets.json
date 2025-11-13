@@ -100,11 +100,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\LTM\\LTM_ChatP2P\\ChatP2P\\ChatP2P.csproj",
+      "projectUniqueName": "D:\\LTM_ChatP2P\\ChatP2P\\ChatP2P.csproj",
       "projectName": "ChatP2P",
-      "projectPath": "D:\\LTM\\LTM_ChatP2P\\ChatP2P\\ChatP2P.csproj",
+      "projectPath": "D:\\LTM_ChatP2P\\ChatP2P\\ChatP2P.csproj",
       "packagesPath": "C:\\Users\\admin\\.nuget\\packages\\",
-      "outputPath": "D:\\LTM\\LTM_ChatP2P\\ChatP2P\\obj\\",
+      "outputPath": "D:\\LTM_ChatP2P\\ChatP2P\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

@@ -1,8 +1,4 @@
 ﻿using ChatP2P.Model;
-using ChatP2P.View;
-using ChatP2P.ViewModel.Command;
-using ChatP2P.Model;
-using ChatP2P.ViewModel.Command;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -11,23 +7,21 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Input;
+using ChatP2P.ViewModel.Command;
+using ChatP2P.View;
+using System.Windows;
 
 namespace ChatP2P.ViewModel
 {
-   
+
     internal class ChatClientWindowViewModel : INotifyPropertyChanged
     {
-
-      
+        // Tiêu đề cửa sổ, kết hợp tên và địa chỉ endpoint
         private string windowTitle = "";
         public string WindowTitle
         {
-            get
-            {
-                return windowTitle;
-            }
+            get { return windowTitle; }
             set
             {
                 windowTitle = value;
@@ -35,6 +29,7 @@ namespace ChatP2P.ViewModel
             }
         }
 
+        // Biến kích hoạt rung cửa sổ khi nhận buzz
         private bool shouldShake;
         public bool ShouldShake
         {
@@ -46,6 +41,7 @@ namespace ChatP2P.ViewModel
                     shouldShake = value;
                     OnPropertyChanged(nameof(ShouldShake));
 
+                    // Sau 500ms tự tắt hiệu ứng rung
                     Task.Delay(500).ContinueWith(t => ShouldShake = false);
                 }
             }
@@ -57,7 +53,7 @@ namespace ChatP2P.ViewModel
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-      
+        // Command chạy khi đóng cửa sổ
         public ICommand onClose { get; private set; }
         public ICommand OnClose
         {
@@ -72,20 +68,21 @@ namespace ChatP2P.ViewModel
             set { onClose = value; }
         }
 
+        // Constructor: đăng ký sự kiện buzz và tạo tiêu đề cửa sổ
         public ChatClientWindowViewModel()
         {
             ConversationManager.Instance.buzzEvent += ActivateBuzz;
-            ConversationManager.Instance.Load();
             UserModel host = NetworkManager.Instance.Host;
             WindowTitle = $"{host.Name} - {host.Address}";
         }
 
-      
+        // Kích hoạt hiệu ứng rung khi nhận buzz
         private void ActivateBuzz(object sender, EventArgs e)
         {
             ShouldShake = true;
         }
 
+        // Được gọi khi đóng cửa sổ: đóng server và thoát ứng dụng
         public static void OnWindowClose()
         {
             NetworkManager.Instance.CloseServer();

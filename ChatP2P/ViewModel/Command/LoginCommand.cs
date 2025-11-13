@@ -1,5 +1,4 @@
-﻿
-using ChatP2P.ViewModel;
+﻿using ChatP2P.ViewModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +8,7 @@ using System.Windows.Input;
 
 namespace ChatP2P.ViewModel.Command
 {
-   
+
     internal class LoginCommand : ICommand
     {
         private MainWindowViewModel parent;

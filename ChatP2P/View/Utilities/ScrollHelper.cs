@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Windows;
 using System.Windows.Controls;
-using System.Windows;
 
-namespace ChatP2P.View.Ulitilies
+namespace ChatP2P.View.Utilities
 {
-    internal class ScrollHelper
+    public static class ScrollHelper
     {
         public static readonly DependencyProperty AutoScrollToEndProperty = DependencyProperty.RegisterAttached(
             "AutoScrollToEnd", typeof(bool), typeof(ScrollHelper), new PropertyMetadata(false, OnAutoScrollToEndChanged));
